@@ -16,6 +16,9 @@ const Navbar = () => {
         <Link to="/" className="text-black py-2 px-4 rounded-lg hover:bg-gray-100">
           Home
         </Link>
+        <Link to="/Dashboard" className="text-black py-2 px-4 rounded-lg hover:bg-gray-100">
+          Dashboard
+        </Link>
         <Link to="/Assignment" className="text-black py-2 px-4 rounded-lg hover:bg-gray-100">
           Add Assignment
         </Link>
