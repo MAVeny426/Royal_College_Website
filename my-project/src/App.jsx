@@ -8,6 +8,7 @@ import Applyleave from './Pages/Applyleave.jsx';
 import Studentattendance from './Pages/Studentattendance.jsx';
 import Account from './Pages/Account.jsx';
 import Addassignment from './Pages/Addassignment.jsx';
+import Dashboard from "./Pages/Dashboard.jsx"
 // import NotFound from './pages/NotFound';
 
 const App = () => {
@@ -22,6 +23,7 @@ const App = () => {
         <Route path="/Studentattendance" element={<Studentattendance />} />
         <Route path='/Account' element={<Account />} />
         <Route path='/Assignment' element={<Addassignment/>}/>
+        <Route path='/Dashboard' element={<Dashboard />}/>
         {/* Not-Found Route */}
         {/* <Route path="*" element={<NotFound />} /> */}
       </>
