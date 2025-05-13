@@ -9,7 +9,6 @@ const Dashboard = () => {
       <Navbar />
 
       <div className="relative min-h-screen font-sans overflow-hidden">
-        {/* Background Image */}
         <div
           className="absolute inset-0 z-0"
           style={{
@@ -19,13 +18,11 @@ const Dashboard = () => {
           }}
         ></div>
 
-        {/* Welcome Text */}
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-center">
           <p className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold drop-shadow-lg mb-8">
             Welcome
           </p>
 
-          {/* Feature Section */}
           <div className="w-full px-4 sm:px-8 md:px-16 lg:px-32 xl:px-48">
             <FeatureSection />
           </div>

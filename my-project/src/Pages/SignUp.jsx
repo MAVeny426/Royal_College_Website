@@ -5,7 +5,7 @@ const SignUp = () => {
   const [Name, SetUserName] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
-  const [userType, setUserType] = useState('admin');
+  const [userType, setUserType] = useState('user');  // Defaulting to 'user' instead of 'admin'
   const [course, setCourse] = useState('');
   const navigate = useNavigate();
 
@@ -19,7 +19,7 @@ const SignUp = () => {
     });
 
     if (res.ok) {
-      alert('Signup Successful');
+      alert('Signup Successful ');
       navigate('/');
     } else {
       alert('Please check the input data');
@@ -29,11 +29,11 @@ const SignUp = () => {
   const submitForm = (e) => {
     e.preventDefault();
     const userDetails = {
-      Name,
+      name: Name,      
       password,
       email,
-      userType,
       course,
+      role: userType,  
     };
     signupSubmit(userDetails);
   };
@@ -42,12 +42,10 @@ const SignUp = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-500">
       <div className="w-full max-w-4xl h-auto bg-white rounded-xl shadow-lg overflow-hidden flex flex-col md:flex-row">
 
-        {/* Left Side */}
         <div className="w-full md:w-1/2 bg-gradient-to-br from-blue-700 to-blue-500 text-white flex flex-col justify-center items-center p-10">
           <h2 className="text-4xl font-bold">ROYAL COLLEGE</h2>
         </div>
 
-        {/* Right Side - Form */}
         <form onSubmit={submitForm} className="w-full md:w-1/2 p-8 flex flex-col justify-center space-y-4">
           <h3 className="text-2xl font-semibold text-gray-800 mb-6">SignUp</h3>
 
@@ -55,6 +53,7 @@ const SignUp = () => {
             type="text"
             name="Name"
             placeholder="Name"
+            autoComplete="username"
             value={Name}
             onChange={(e) => SetUserName(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -63,6 +62,7 @@ const SignUp = () => {
             type="email"
             name="email"
             placeholder="Email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"

@@ -18,17 +18,14 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="flex flex-col md:flex-row items-center max-w-6xl w-full shadow-lg rounded-lg overflow-hidden">
         
-        {/* Image Section */}
         <div className="md:w-1/2 w-full">
           <img src={login} alt="login" className="w-full h-full object-cover" />
         </div>
 
-        {/* Form Section */}
         <div className="md:w-1/2 w-full p-8">
           <form onSubmit={handleLogin} className="space-y-5">
             <h2 className="text-2xl font-bold text-center underline">Login</h2>
 
-            {/* Role Selector */}
             <div className="flex justify-center space-x-6">
               <label className="flex items-center space-x-2">
                 <input
@@ -52,7 +49,6 @@ const Login = () => {
               </label>
             </div>
 
-            {/* Conditional Email/Admin Code Input */}
             {role === 'user' ? (
               <div>
                 <label className="block text-sm font-medium">Email</label>
@@ -79,7 +75,6 @@ const Login = () => {
               </div>
             )}
 
-            {/* Password Input */}
             <div>
               <label className="block text-sm font-medium">Password</label>
               <input
@@ -92,15 +87,12 @@ const Login = () => {
               />
             </div>
 
-            {/* Login Button */}
             <button
               type="submit"
               className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300"
             >
               Login
             </button>
-
-            {/* Signup Link */}
             <p className="text-center text-sm">
               Don’t have an account?{' '}
               <a href="/SignUp" className="text-blue-500 underline">
