@@ -1,13 +1,13 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import userrouter from './Router/userrouter.js'
+// import userrouter from './Router/userrouter.js'
 
 dotenv.config()
 const collegeapp = express();
 
 collegeapp.use(express.json());
-collegeapp.use('/', userrouter);
+// collegeapp.use('/', userrouter);
 collegeapp.use((req, res, next) => {
     console.log(`Incoming request: ${req.method} ${req.url}`);
     next();

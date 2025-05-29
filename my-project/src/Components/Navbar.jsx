@@ -23,13 +23,13 @@ const Navbar = () => {
           Add Assignment
         </Link>
         <Link to="/Attendance" className="text-black py-2 px-4 rounded-lg hover:bg-gray-100">
-          Attendance
+           Student Attendance
         </Link>
         <Link to="/Account" className="text-black py-2 px-4 rounded-lg hover:bg-gray-100">
           Account
         </Link>
         <Link to="/Studentattendance" className="text-black py-2 px-4 rounded-lg hover:bg-gray-100">
-          Student Attendance
+          Teacher Mark Attendance
         </Link>
         <Link to="/SignUp" className="text-black py-2 px-4 rounded-lg hover:bg-gray-100">
           SignUp

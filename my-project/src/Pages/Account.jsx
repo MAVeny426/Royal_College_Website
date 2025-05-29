@@ -88,7 +88,14 @@ const Account = () => {
               </div>
               <div className="h-1 bg-gray-300 rounded mt-2">
                 <div className="h-full bg-blue-500 rounded" style={{ width: '80%' }}></div>
-              </div>
+              </div><br></br><br></br>
+              
+
+              <h3 className="mb-4 font-semibold text-lg">Assigmnet Details</h3>
+
+            
+
+
             </div>
           </div>
         </div>
