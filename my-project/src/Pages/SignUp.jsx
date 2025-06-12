@@ -5,20 +5,21 @@ const SignUp = () => {
   const [Name, SetUserName] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
-  const [userType, setUserType] = useState('user');  // Defaulting to 'user' instead of 'admin'
+  const [userType, setUserType] = useState('student');  // Defaulting to 'user' instead of 'admin'
   const [course, setCourse] = useState('');
   const navigate = useNavigate();
 
   const signupSubmit = async (userDetails) => {
-    const res = await fetch('http://localhost:3000/signupuser', {
+    const res = await fetch('http://localhost:3000/api/auth/studentsignup', {
       method: 'POST',
       headers: {
-        'content-Type': 'application/json',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(userDetails),
     });
 
     if (res.ok) {
+      localStorage.setItem('userRole', 'student');
       alert('Signup Successful ');
       navigate('/');
     } else {

@@ -12,7 +12,10 @@ import Dashboard from "./Pages/Dashboard.jsx";
 import ViewTeachers from './Pages/ViewTeachers.jsx';
 import AddTeacher from './Pages/AddTeacher.jsx';
 import UpdateTeacher from './Pages/UpdateTeacher.jsx';
-import DeleteTeacher from './Pages/DeleteTeacher.jsx'
+import DeleteTeacher from './Pages/DeleteTeacher.jsx';
+import AddCourse from './Pages/AddCourse.jsx';
+import Coursedetails from './Pages/Coursedetails.jsx';
+import Updatecourse from './Pages/Updatecourse.jsx';
 // import NotFound from './pages/NotFound';
 
 const App = () => {
@@ -32,6 +35,9 @@ const App = () => {
         <Route path='/UpdateTeacher' element={< UpdateTeacher/>}/>
         <Route path='/DeleteTeacher' element={< DeleteTeacher/>}/>
         <Route path='/teachersdetails' element={< ViewTeachers/>}/>
+        <Route path='/AddCourse' element={< AddCourse/>}/>
+        <Route path='/Coursedetails' element={< Coursedetails/>}/>
+        <Route path='/Updatecourse' element={< Updatecourse/>}/>
         {/* Not-Found Route */}
         {/* <Route path="*" element={<NotFound />} /> */}
       </>

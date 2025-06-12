@@ -1,27 +1,26 @@
 import { connection } from "../main.js";
 
-const createstudentTable = async () => {
+const createStudentTable = async () => {
+  const query = `
+    CREATE TABLE IF NOT EXISTS student (
+      user_id INTEGER PRIMARY KEY REFERENCES users(user_id) ON DELETE CASCADE,
+      student_code TEXT UNIQUE,
+      guardian_name TEXT,
+      address TEXT,
+      dob DATE,
+      gender VARCHAR(10),
+      blood_group VARCHAR(5),
+      admission_date DATE,
+      documents JSON,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`;
 
-    const query = `CREATE TABLE "Students" (
-    User_Id INTEGER PRIMARY KEY REFERENCES "Users"("User_Id") ON DELETE CASCADE,
-    Student_Code TEXT UNIQUE, 
-    Guardian_Name TEXT,
-    Address TEXT,
-    DOB DATE,
-    Gender VARCHAR(10),
-    Blood_Group VARCHAR(5),
-    Admission_Date DATE,
-    Documents JSON,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
-    
-    try {
+  try {
     await connection.query(query);
-    console.log("Student table created successfully.");
+    console.log('Student table created successfully.');
   } catch (err) {
-    console.error("Error creating Student table:", err.message);
+    console.error('Error creating Student table:', err.message);
   }
+};
 
-}
-
-createstudentTable();    
-export default createstudentTable
+export default createStudentTable;

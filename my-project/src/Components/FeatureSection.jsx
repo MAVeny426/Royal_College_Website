@@ -36,7 +36,7 @@ const FeatureSection = () => {
               image={feature.image}
               title={feature.title}
               description={feature.description}
-              link={feature.link} // 👈 Pass the correct link
+              link={feature.link} 
             />
           ))}
         </div>

@@ -2,14 +2,16 @@ import { Router } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { connection } from "../main.js";
+import { verifyUserToken } from "../Middleware/verifyUserToken.js";
 
 const authrouter = Router();
 
 authrouter.post("/signup", async (req, res) => {
+  
   const { name, email, password, course } = req.body;
 
   try {
-    const userQuery = `SELECT * FROM "Users" WHERE email = $1`;
+    const userQuery = `SELECT * FROM "users" WHERE email = $1`;
     const result = await connection.query(userQuery, [email]);
 
     if (result.rows.length === 0) {
@@ -55,10 +57,48 @@ authrouter.post("/signup", async (req, res) => {
   }
 });
 
+// authrouter.post("/login", async (req, res) => {
+//   const { email, password } = req.body;
+
+//   const query = 'SELECT * FROM "users" WHERE email = $1';
+//   const values = [email];
+
+//   try {
+//     const result = await connection.query(query, values);
+
+//     if (result.rows.length === 0) {
+//       return res.status(401).json({ message: "Invalid credentials" });
+//     }
+
+//     const user = result.rows[0];
+//     const validPassword = await bcrypt.compare(password, user.password);
+//     if (!validPassword) {
+//       return res.status(401).json({ message: "Invalid credentials" });
+//     }
+
+//     const token = jwt.sign(
+//       { userId: user.email, userRole: user.role },
+//       process.env.JWT_SECRET,
+//       { expiresIn: "24h" }
+//     );
+//     res.cookie("accessToken", token, {
+//       httpOnly: true,
+//     });
+//     res.status(200).json({ message: "Login successful" });
+//   } catch (error) {
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
+
+authrouter.get('/verifyToken', verifyUserToken, (req, res) => {
+  res.status(200).json({ message: "Token is valid", userRole: req.loginRole });
+});
+
+
 authrouter.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const query = 'SELECT * FROM "Users" WHERE email = $1';
+  const query = 'SELECT * FROM "users" WHERE email = $1';
   const values = [email];
 
   try {
@@ -70,6 +110,7 @@ authrouter.post("/login", async (req, res) => {
 
     const user = result.rows[0];
     const validPassword = await bcrypt.compare(password, user.password);
+
     if (!validPassword) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -79,14 +120,22 @@ authrouter.post("/login", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
-    res.cookie("accessToken", token, {
-      httpOnly: true,
+
+    res.cookie("accessToken", token, { httpOnly: true });
+
+    // 🔥 Return token and role
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      role: user.role,
     });
-    res.status(200).json({ message: "Login successful" });
   } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+
 
 authrouter.get("/logout", (req, res) => {
   res.clearCookie("accessToken");
