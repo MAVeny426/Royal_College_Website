@@ -348,6 +348,75 @@ adminrouter.patch("/updateTeacherSchedule", verifyUserToken, async (req, res) =>
   }
 });
 
+//course section
+adminrouter.patch("/updateCourse", verifyUserToken, async (req, res) => {
+  if (req.loginRole !== "admin") {
+    return res.status(403).json({ message: "Unauthorized access" });
+  }
+
+  const {
+    course_id, // required
+    course_name,
+    course_code,
+    department,
+    duration_years,
+    is_active,
+  } = req.body;
+
+  if (!course_id) {
+    return res.status(400).json({ message: "course_id is required" });
+  }
+
+  try {
+    const updateFields = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (course_name) {
+      updateFields.push(`course_name = $${paramIndex++}`);
+      values.push(course_name);
+    }
+    if (course_code) {
+      updateFields.push(`course_code = $${paramIndex++}`);
+      values.push(course_code);
+    }
+    if (department) {
+      updateFields.push(`department = $${paramIndex++}`);
+      values.push(department);
+    }
+    if (duration_years !== undefined) {
+      updateFields.push(`duration_years = $${paramIndex++}`);
+      values.push(duration_years);
+    }
+    if (is_active !== undefined) {
+      updateFields.push(`is_active = $${paramIndex++}`);
+      values.push(is_active);
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ message: "No valid fields to update" });
+    }
+
+    // Add the course_id at the end for the WHERE clause
+    values.push(course_id);
+    const query = `
+      UPDATE course
+      SET ${updateFields.join(", ")}, updated_at = CURRENT_TIMESTAMP
+      WHERE course_id = $${paramIndex}
+      RETURNING *;
+    `;
+
+    const result = await connection.query(query, values);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    res.json({ message: "Course updated successfully", course: result.rows[0] });
+  } catch (err) {
+    console.error("Error updating course:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 
 export default adminrouter;

@@ -1,4 +1,3 @@
-// src/pages/UpdateTeacher.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import updateteacher from "../college_website/updateteacher.jpeg";
@@ -7,8 +6,8 @@ const UpdateTeacher = () => {
   const [teachers, setTeachers] = useState([]);
   const [selectedName, setSelectedName] = useState("");
   const [teacherDetails, setTeacherDetails] = useState(null);
-  const [subjectsTaught, setSubjectsTaught] = useState("");
-  const [schedule, setSchedule] = useState("");
+  const [subjectsTaughtList, setSubjectsTaughtList] = useState([]);
+  const [scheduleList, setScheduleList] = useState([]);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -30,46 +29,72 @@ const UpdateTeacher = () => {
   useEffect(() => {
     if (!selectedName) {
       setTeacherDetails(null);
-      setSubjectsTaught("");
-      setSchedule("");
+      setSubjectsTaughtList([]);
+      setScheduleList([]);
       return;
     }
+  
     const fetchTeacherDetails = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/teach/getProfileDetails?name=${selectedName}`, {
-          credentials: "include",
-        });
+        const res = await fetch(
+          `http://localhost:3000/api/teach/getProfileDetails?name=${selectedName}`,
+          { credentials: "include" }
+        );
         const data = await res.json();
-        console.log("Hii");
-        
-        console.log("data",data);
-        
         const teacher = data.teachers && data.teachers[0];
+  
         setTeacherDetails(teacher || null);
-        setSubjectsTaught(teacher?.subjects_taught ? JSON.stringify(teacher.subjects_taught) : "");
-        setSchedule(teacher?.schedule ? JSON.stringify(teacher.schedule) : "");
+        setSubjectsTaughtList(Array.isArray(teacher?.subjects_taught) ? teacher.subjects_taught : []);
+  
+        let rawSchedule = teacher?.schedule;
+  
+        if (Array.isArray(rawSchedule)) {
+          const parsed = [];
+  
+          for (let i = 0; i < rawSchedule.length; i++) {
+            const item = rawSchedule[i];
+  
+            if (typeof item === "string" && item.includes(":")) {
+              // "Monday: 10-12"
+              const [day, time] = item.split(":").map((str) => str.trim());
+              parsed.push({ day, time });
+            } else if (typeof item === "object" && item.day && item.time) {
+              parsed.push({ day: item.day, time: item.time });
+            } else if (
+              typeof item === "string" &&
+              i + 1 < rawSchedule.length &&
+              typeof rawSchedule[i + 1] === "string"
+            ) {
+              // handle ["Monday", "10-12"]
+              parsed.push({ day: item.trim(), time: rawSchedule[i + 1].trim() });
+              i++; // skip next item
+            }
+          }
+  
+          setScheduleList(parsed);
+        } else {
+          setScheduleList([]);
+        }
       } catch (err) {
         setError("Failed to fetch teacher details");
       }
     };
     fetchTeacherDetails();
   }, [selectedName]);
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    try {
-      const parsedSubjects = JSON.parse(subjectsTaught);
-      const parsedSchedule = JSON.parse(schedule);
 
+    try {
       const res = await fetch("http://localhost:3000/api/admin/updateTeacherSchedule", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           name: selectedName,
-          subjectsTaught: parsedSubjects,
-          schedule: parsedSchedule,
+          subjectsTaught: subjectsTaughtList,
+          schedule: scheduleList,
         }),
       });
 
@@ -81,7 +106,7 @@ const UpdateTeacher = () => {
         setError(data.message || "Update failed");
       }
     } catch (err) {
-      setError("Invalid JSON format in Subjects or Schedule");
+      setError("Error during submission");
     }
   };
 
@@ -105,14 +130,15 @@ const UpdateTeacher = () => {
               >
                 <option value="">Select a teacher</option>
                 {teachers.map((t) => (
-                  <option key={t.user_id} value={t.name}>{t.name}</option>
+                  <option key={t.user_id} value={t.name}>
+                    {t.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             {teacherDetails && (
               <>
-                <input readOnly value={teacherDetails.teacher_id || ""} className="hidden" />
                 <div>
                   <label className="block text-gray-700 font-semibold mb-1">Name</label>
                   <input
@@ -149,25 +175,89 @@ const UpdateTeacher = () => {
                     className="w-full border border-gray-300 rounded px-4 py-2 bg-gray-100"
                   />
                 </div>
+
+                {/* Subjects Taught */}
                 <div>
                   <label className="block text-gray-700 font-semibold mb-1">Subjects Taught</label>
-                  <input
-                    type="text"
-                    value={subjectsTaught}
-                    onChange={(e) => setSubjectsTaught(e.target.value)}
-                    placeholder='e.g. ["Math", "Physics"]'
-                    className="w-full border border-gray-300 rounded px-4 py-2"
-                  />
+                  {subjectsTaughtList.map((subject, idx) => (
+                    <div key={idx} className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        value={subject}
+                        onChange={(e) => {
+                          const updated = [...subjectsTaughtList];
+                          updated[idx] = e.target.value;
+                          setSubjectsTaughtList(updated);
+                        }}
+                        className="flex-1 border border-gray-300 rounded px-3 py-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = subjectsTaughtList.filter((_, i) => i !== idx);
+                          setSubjectsTaughtList(updated);
+                        }}
+                        className="text-red-500 font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setSubjectsTaughtList([...subjectsTaughtList, ""])}
+                    className="mt-1 text-blue-500 font-medium"
+                  >
+                    + Add Subject
+                  </button>
                 </div>
+
+                {/* Schedule Editable List */}
                 <div>
                   <label className="block text-gray-700 font-semibold mb-1">Schedule</label>
-                  <input
-                    type="text"
-                    value={schedule}
-                    onChange={(e) => setSchedule(e.target.value)}
-                    placeholder='e.g. [{"day":"Mon","time":"9-10"}]'
-                    className="w-full border border-gray-300 rounded px-4 py-2"
-                  />
+                  {scheduleList.map((slot, idx) => (
+                    <div key={idx} className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        placeholder="Day"
+                        value={slot.day?.replace(/['"]+/g, "") || ""}
+                        onChange={(e) => {
+                          const updated = [...scheduleList];
+                          updated[idx].day = e.target.value;
+                          setScheduleList(updated);
+                        }}
+                        className="w-1/2 border border-gray-300 rounded px-3 py-1"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Time"
+                        value={slot.time?.replace(/^(time:)?\s*["']?(.+?)["']?$/i, "$2") || ""}
+                        onChange={(e) => {
+                          const updated = [...scheduleList];
+                          updated[idx].time = e.target.value;
+                          setScheduleList(updated);
+                        }}
+                        className="w-1/2 border border-gray-300 rounded px-3 py-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = scheduleList.filter((_, i) => i !== idx);
+                          setScheduleList(updated);
+                        }}
+                        className="text-red-500 font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setScheduleList([...scheduleList, { day: "", time: "" }])}
+                    className="mt-1 text-blue-500 font-medium"
+                  >
+                    + Add Slot
+                  </button>
                 </div>
                 <button
                   type="submit"
