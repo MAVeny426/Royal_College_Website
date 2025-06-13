@@ -49,6 +49,7 @@ const Dashboard = () => {
                 if (value === 'add') navigate('/AddTeacher');
                 else if (value === 'update') navigate('/UpdateTeacher');
                 else if (value === 'delete') navigate('/DeleteTeacher');
+                
               }}
             >
               <option value="">Teacher</option>
@@ -63,6 +64,7 @@ const Dashboard = () => {
                 const value = e.target.value;
                 if (value === 'add') navigate('/addcourse');
                 else if (value ==='update') navigate ('/Updatecourse')
+                else if (value ==='delete') navigate ('/DeleteCourse')
               }}
             >
               <option value="">Course</option>

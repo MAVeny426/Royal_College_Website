@@ -348,73 +348,208 @@ adminrouter.patch("/updateTeacherSchedule", verifyUserToken, async (req, res) =>
   }
 });
 
-//course section
-adminrouter.patch("/updateCourse", verifyUserToken, async (req, res) => {
+// Update course details (admin only)
+
+// adminrouter.patch("/updateCourse", verifyUserToken, async (req, res) => {
+//   if (req.loginRole !== "admin") {
+//     console.log("Invalid access");
+//     return res.status(403).json({ message: "Unauthorized access" });
+//   }
+
+//   const {
+//     course_id,
+//     course_name,
+//     course_code,
+//     department,
+//     duration_years,
+//     is_active,
+//   } = req.body;
+
+//   if (!course_id) {
+//     return res.status(400).json({ message: "course_id is required" });
+//   }
+
+//   try {
+//     // Build update fields and values dynamically
+//     const updateFields = [];
+//     const values = [];
+//     let paramIndex = 1;
+
+//     if (course_name) {
+//       updateFields.push(`course_name = $${paramIndex++}`);
+//       values.push(course_name);
+//     }
+//     if (course_code) {
+//       updateFields.push(`course_code = $${paramIndex++}`);
+//       values.push(course_code);
+//     }
+//     if (department) {
+//       updateFields.push(`department = $${paramIndex++}`);
+//       values.push(department);
+//     }
+//     if (duration_years !== undefined) {
+//       updateFields.push(`duration_years = $${paramIndex++}`);
+//       values.push(duration_years);
+//     }
+//     if (is_active !== undefined) {
+//       updateFields.push(`is_active = $${paramIndex++}`);
+//       values.push(is_active);
+//     }
+
+//     if (updateFields.length === 0) {
+//       return res.status(400).json({ message: "No valid fields to update" });
+//     }
+
+//     // Add updated_at field and WHERE clause
+//     updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+//     values.push(course_id);
+
+//     const query = `
+//       UPDATE course
+//       SET ${updateFields.join(", ")}
+//       WHERE course_id = $${paramIndex}
+//       RETURNING *;
+//     `;
+
+//     const result = await connection.query(query, values);
+
+//     if (result.rowCount === 0) {
+//       return res.status(404).json({ message: "Course not found" });
+//     }
+
+//     res.status(200).json({
+//       message: "Course updated successfully",
+//       course: result.rows[0],
+//     });
+//   } catch (error) {
+//     console.error("Error updating course:", error.message);
+//     res.status(500).json({ message: "Failed to update course" });
+//   }
+// });
+
+//get course by id
+
+adminrouter.get("/getCourseById/:id", verifyUserToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await connection.query("SELECT * FROM course WHERE course_id = $1", [id]);
+    if (result.rowCount === 0) return res.status(404).json({ message: "Course not found" });
+    res.status(200).json({ course: result.rows[0] });
+  } catch (error) {
+    console.error("Error fetching course by ID:", error.message);
+    res.status(500).json({ message: "Failed to fetch course" });
+  }
+});
+
+//fetch batch by courseisd
+
+adminrouter.get("/getBatchByCourseId/:course_id", verifyUserToken, async (req, res) => {
   if (req.loginRole !== "admin") {
     return res.status(403).json({ message: "Unauthorized access" });
   }
 
-  const {
-    course_id, // required
-    course_name,
-    course_code,
-    department,
-    duration_years,
-    is_active,
-  } = req.body;
+  const { course_id } = req.params;
 
-  if (!course_id) {
-    return res.status(400).json({ message: "course_id is required" });
+  try {
+    const { rows } = await connection.query(
+      "SELECT * FROM batch WHERE course_id = $1 LIMIT 1",
+      [course_id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Batch not found for the given course ID" });
+    }
+
+    return res.status(200).json({ batch: rows[0] });
+  } catch (error) {
+    console.error("Error fetching batch:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+//update batch
+
+adminrouter.post("/addBatch", verifyUserToken, async (req, res) => {
+  if (req.loginRole !== "admin") {
+    return res.status(403).json({ message: "Unauthorized access" });
+  }
+
+  const { batch_name, year, start_date, end_date, course_id } = req.body;
+
+  if (!batch_name || !year || !start_date || !end_date || !course_id) {
+    return res.status(400).json({ message: "All fields are required" });
   }
 
   try {
-    const updateFields = [];
-    const values = [];
-    let paramIndex = 1;
+    const result = await connection.query(
+      `INSERT INTO batch (batch_name, year, start_date, end_date, course_id)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *;`,
+      [batch_name, year, start_date, end_date, course_id]
+    );
 
-    if (course_name) {
-      updateFields.push(`course_name = $${paramIndex++}`);
-      values.push(course_name);
-    }
-    if (course_code) {
-      updateFields.push(`course_code = $${paramIndex++}`);
-      values.push(course_code);
-    }
-    if (department) {
-      updateFields.push(`department = $${paramIndex++}`);
-      values.push(department);
-    }
-    if (duration_years !== undefined) {
-      updateFields.push(`duration_years = $${paramIndex++}`);
-      values.push(duration_years);
-    }
-    if (is_active !== undefined) {
-      updateFields.push(`is_active = $${paramIndex++}`);
-      values.push(is_active);
-    }
+    res.status(201).json({ message: "New batch created", batch: result.rows[0] });
+  } catch (error) {
+    console.error("Error creating batch:", error);
+    res.status(500).json({ message: "Failed to create batch" });
+  }
+});
 
-    if (updateFields.length === 0) {
-      return res.status(400).json({ message: "No valid fields to update" });
-    }
+//Delete batch
 
-    // Add the course_id at the end for the WHERE clause
-    values.push(course_id);
-    const query = `
-      UPDATE course
-      SET ${updateFields.join(", ")}, updated_at = CURRENT_TIMESTAMP
-      WHERE course_id = $${paramIndex}
-      RETURNING *;
-    `;
+adminrouter.delete("/deleteCourse/:id", verifyUserToken, async (req, res) => {
+  if (req.loginRole !== "admin") {
+    return res.status(403).json({ message: "Unauthorized access" });
+  }
 
-    const result = await connection.query(query, values);
-    if (result.rowCount === 0) {
+  const courseId = req.params.id;
+
+  try {
+    // Start a transaction
+    await connection.query("BEGIN");
+
+    // 1. Delete batches associated with the course
+    await connection.query(`DELETE FROM batch WHERE course_id = $1`, [courseId]);
+
+    // 2. Delete the course
+    const courseResult = await connection.query(
+      `DELETE FROM course WHERE course_id = $1 RETURNING *`,
+      [courseId]
+    );
+
+    if (courseResult.rowCount === 0) {
+      await connection.query("ROLLBACK");
       return res.status(404).json({ message: "Course not found" });
     }
 
-    res.json({ message: "Course updated successfully", course: result.rows[0] });
-  } catch (err) {
-    console.error("Error updating course:", err.message);
-    res.status(500).json({ message: "Server error" });
+    // Commit the transaction
+    await connection.query("COMMIT");
+
+    res.status(200).json({ message: "Course and associated batches deleted successfully" });
+  } catch (error) {
+    await connection.query("ROLLBACK");
+    console.error("Error deleting course:", error.message);
+    res.status(500).json({ message: "Failed to delete course and its batches" });
+  }
+});
+
+// In adminroute.js
+adminrouter.get("/getAllCourses", verifyUserToken, async (req, res) => {
+  if (req.loginRole !== "admin") {
+    return res.status(403).json({ message: "Unauthorized access" });
+  }
+
+  try {
+    const result = await connection.query(
+      `SELECT course_id, course_name, course_code, department, duration_years, is_active 
+       FROM course 
+       ORDER BY course_name ASC`
+    );
+
+    res.status(200).json({ courses: result.rows });
+  } catch (error) {
+    console.error("Error fetching all courses:", error.message);
+    res.status(500).json({ message: "Failed to fetch courses" });
   }
 });
 
