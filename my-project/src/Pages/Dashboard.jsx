@@ -63,12 +63,14 @@ const Dashboard = () => {
               onChange={(e) => {
                 const value = e.target.value;
                 if (value === 'add') navigate('/addcourse');
+                else if (value ==='list') navigate ('/AllCourses')
                 else if (value ==='update') navigate ('/Updatecourse')
                 else if (value ==='delete') navigate ('/DeleteCourse')
               }}
             >
               <option value="">Course</option>
               <option value="add">Add Course</option>
+              <option value="list">List Courses</option>
               <option value="update">Update Course</option>
               <option value="delete">Delete Course</option>
             </select>

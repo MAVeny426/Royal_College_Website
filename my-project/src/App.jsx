@@ -18,6 +18,7 @@ import Coursedetails from './Pages/Coursedetails.jsx';
 import UpdateCourse from './Pages/Updatecourse.jsx';
 import EditCourseDetails from './Pages/EditCourseDetails.jsx';
 import DeleteCourse from './Pages/DeleteCourse.jsx';
+import AllCourses from './Pages/AllCourses.jsx';
 
 // import NotFound from './pages/NotFound';
 
@@ -43,6 +44,7 @@ const App = () => {
         <Route path='/UpdateCourse' element={< UpdateCourse/>}/>
         <Route path='/EditCourseDetails/:id' element={< EditCourseDetails/>}/>
         <Route path='/DeleteCourse' element={< DeleteCourse/>}/>
+        <Route path='/AllCourses' element={< AllCourses/>}/>
 
         {/* Not-Found Route */}
         {/* <Route path="*" element={<NotFound />} /> */}
