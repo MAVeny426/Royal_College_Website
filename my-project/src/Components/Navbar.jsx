@@ -16,9 +16,10 @@ const Navbar = () => {
     if (role === 'admin') {
       return (
         <>
+          <Link to="/Login" className="nav-link">Login</Link>
           <Link to="/" className="nav-link">Home</Link>
           <Link to="/Dashboard" className="nav-link">Dashboard</Link>
-          <Link to="/Login" className="nav-link">Login</Link>
+          <Link to='/' className='nav-link'>Logout</Link>
         </>
       );
     }

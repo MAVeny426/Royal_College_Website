@@ -19,6 +19,9 @@ import UpdateCourse from './Pages/Updatecourse.jsx';
 import EditCourseDetails from './Pages/EditCourseDetails.jsx';
 import DeleteCourse from './Pages/DeleteCourse.jsx';
 import AllCourses from './Pages/AllCourses.jsx';
+import AddBatch from './Pages/AddBatch.jsx';
+import ViewCourse from './Pages/ViewCourse.jsx';
+import EditBatch from './Pages/EditBatch.jsx';
 
 // import NotFound from './pages/NotFound';
 
@@ -45,7 +48,9 @@ const App = () => {
         <Route path='/EditCourseDetails/:id' element={< EditCourseDetails/>}/>
         <Route path='/DeleteCourse' element={< DeleteCourse/>}/>
         <Route path='/AllCourses' element={< AllCourses/>}/>
-
+        <Route path='/AddBatch' element={< AddBatch/>}/>
+        <Route path="/ViewCourse" element={<ViewCourse />} />
+        <Route path="/EditBatch" element={<EditBatch />} />
         {/* Not-Found Route */}
         {/* <Route path="*" element={<NotFound />} /> */}
       </>

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import dashboard from '../college_website/dashboard.jpg';
 
 const AllCourses = () => {
   const [courses, setCourses] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch("http://localhost:3000/api/admin/getAllCourses", { credentials: "include" })
@@ -30,7 +32,7 @@ const AllCourses = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr>
-                    <th className="border-b pb-2">No. </th>
+                    <th className="border-b pb-2">No.</th>
                     <th className="border-b pb-2">Course Name</th>
                     <th className="border-b pb-2">Course Code</th>
                     <th className="border-b pb-2">Department</th>
@@ -39,7 +41,11 @@ const AllCourses = () => {
                 </thead>
                 <tbody>
                   {courses.map((course, index) => (
-                    <tr key={course.course_id} className="hover:bg-blue-700">
+                    <tr
+                      key={course.course_id}
+                      className="hover:bg-blue-700 cursor-pointer"
+                      onClick={() => navigate('/viewcourse', { state: { course_id: course.course_id } })}
+                    >
                       <td className="py-2">{index + 1}</td>
                       <td className="py-2">{course.course_name}</td>
                       <td className="py-2">{course.course_code}</td>

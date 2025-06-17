@@ -348,85 +348,6 @@ adminrouter.patch("/updateTeacherSchedule", verifyUserToken, async (req, res) =>
   }
 });
 
-// Update course details (admin only)
-
-// adminrouter.patch("/updateCourse", verifyUserToken, async (req, res) => {
-//   if (req.loginRole !== "admin") {
-//     console.log("Invalid access");
-//     return res.status(403).json({ message: "Unauthorized access" });
-//   }
-
-//   const {
-//     course_id,
-//     course_name,
-//     course_code,
-//     department,
-//     duration_years,
-//     is_active,
-//   } = req.body;
-
-//   if (!course_id) {
-//     return res.status(400).json({ message: "course_id is required" });
-//   }
-
-//   try {
-//     // Build update fields and values dynamically
-//     const updateFields = [];
-//     const values = [];
-//     let paramIndex = 1;
-
-//     if (course_name) {
-//       updateFields.push(`course_name = $${paramIndex++}`);
-//       values.push(course_name);
-//     }
-//     if (course_code) {
-//       updateFields.push(`course_code = $${paramIndex++}`);
-//       values.push(course_code);
-//     }
-//     if (department) {
-//       updateFields.push(`department = $${paramIndex++}`);
-//       values.push(department);
-//     }
-//     if (duration_years !== undefined) {
-//       updateFields.push(`duration_years = $${paramIndex++}`);
-//       values.push(duration_years);
-//     }
-//     if (is_active !== undefined) {
-//       updateFields.push(`is_active = $${paramIndex++}`);
-//       values.push(is_active);
-//     }
-
-//     if (updateFields.length === 0) {
-//       return res.status(400).json({ message: "No valid fields to update" });
-//     }
-
-//     // Add updated_at field and WHERE clause
-//     updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
-//     values.push(course_id);
-
-//     const query = `
-//       UPDATE course
-//       SET ${updateFields.join(", ")}
-//       WHERE course_id = $${paramIndex}
-//       RETURNING *;
-//     `;
-
-//     const result = await connection.query(query, values);
-
-//     if (result.rowCount === 0) {
-//       return res.status(404).json({ message: "Course not found" });
-//     }
-
-//     res.status(200).json({
-//       message: "Course updated successfully",
-//       course: result.rows[0],
-//     });
-//   } catch (error) {
-//     console.error("Error updating course:", error.message);
-//     res.status(500).json({ message: "Failed to update course" });
-//   }
-// });
-
 //get course by id
 
 adminrouter.get("/getCourseById/:id", verifyUserToken, async (req, res) => {
@@ -474,11 +395,13 @@ adminrouter.post("/addBatch", verifyUserToken, async (req, res) => {
     return res.status(403).json({ message: "Unauthorized access" });
   }
 
-  const { batch_name, year, start_date, end_date, course_id } = req.body;
+    const { batch_name, start_date, end_date, course_id } = req.body;
+    const year = new Date(start_date).getFullYear(); // derive year from start_date
 
-  if (!batch_name || !year || !start_date || !end_date || !course_id) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
+    if (!batch_name || !start_date || !end_date || !course_id) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
 
   try {
     const result = await connection.query(
@@ -552,6 +475,138 @@ adminrouter.get("/getAllCourses", verifyUserToken, async (req, res) => {
     res.status(500).json({ message: "Failed to fetch courses" });
   }
 });
+
+adminrouter.get("/getbatches", async (req, res) => {
+  const { course_id } = req.query;
+  console.log("Received course_id:", course_id); // 🔍 Add this
+
+  if (!course_id || isNaN(course_id)) {
+    return res.status(400).json({ message: "Valid Course ID is required" });
+  }
+
+  try {
+    const batchResult = await connection.query(
+      "SELECT batch_id, batch_name, year FROM batch WHERE course_id = $1 ORDER BY year DESC",
+      [parseInt(course_id)]
+    );
+    console.log("Batches found:", batchResult.rows); // 🔍 Add this
+
+    res.status(200).json({ batches: batchResult.rows });
+  } catch (error) {
+    console.error("Error fetching batch details:", error);
+    res.status(500).json({ message: "Error fetching batches" });
+  }
+});
+
+// routes/adminRouter.js (or wherever your admin routes are defined)
+
+adminrouter.patch("/updateCourse", verifyUserToken, async (req, res) => {
+  if (req.loginRole !== "admin") {
+    return res.status(403).json({ message: "Unauthorized access" });
+  }
+
+  const { course_id, course_name, course_code, department, duration_years, is_active } = req.body;
+
+  // Input validation
+  if (!course_id || !course_name || !course_code || duration_years === undefined || is_active === undefined) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  try {
+    const result = await connection.query(
+      `UPDATE course 
+       SET course_name = $1, course_code = $2, department = $3, duration_years = $4, is_active = $5 
+       WHERE course_id = $6 
+       RETURNING *;`,
+      [course_name, course_code, department, duration_years, is_active, course_id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    res.status(200).json({ message: "Course updated successfully", course: result.rows[0] });
+  } catch (error) {
+    console.error("Error updating course:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+adminrouter.get("/getCourse/:id", verifyUserToken, async (req, res) => {
+  if (req.loginRole !== "admin") {
+    return res.status(403).json({ message: "Unauthorized access" });
+  }
+
+  const course_id = req.params.id;
+
+  try {
+    // Fetch course details
+    const courseResult = await connection.query(
+      `SELECT course_id, course_name, course_code, department, duration_years
+       FROM course WHERE course_id = $1`,
+      [course_id]
+    );
+
+    if (courseResult.rows.length === 0) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    // Fetch associated batches using "year" (not "batch_year")
+    const batchResult = await connection.query(
+      `SELECT batch_id, batch_name, year, start_date, end_date 
+       FROM batch WHERE course_id = $1 ORDER BY year DESC`,
+      [course_id]
+    );
+
+    res.status(200).json({
+      course: courseResult.rows[0],
+      batches: batchResult.rows,
+    });
+  } catch (error) {
+    console.error("Error fetching course:", error.message);
+    res.status(500).json({ message: "Failed to fetch course details" });
+  }
+});
+
+adminrouter.delete("/deleteBatch/:id", verifyUserToken, async (req, res) => {
+  if (req.loginRole !== "admin") {
+    return res.status(403).json({ message: "Unauthorized access" });
+  }
+
+  const batch_id = req.params.id;
+
+  try {
+    await connection.query(`DELETE FROM batch WHERE batch_id = $1`, [batch_id]);
+    res.status(200).json({ message: "Batch deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting batch:", error.message);
+    res.status(500).json({ message: "Failed to delete batch" });
+  }
+});
+
+adminrouter.put("/updateBatch/:id", verifyUserToken, async (req, res) => {
+  if (req.loginRole !== "admin") {
+    return res.status(403).json({ message: "Unauthorized access" });
+  }
+
+  const batch_id = req.params.id;
+  const { batch_name, year, start_date, end_date } = req.body;
+
+  try {
+    await connection.query(
+      `UPDATE batch 
+       SET batch_name = $1, year = $2, start_date = $3, end_date = $4 
+       WHERE batch_id = $5`,
+      [batch_name, year, start_date, end_date, batch_id]
+    );
+
+    res.status(200).json({ message: "Batch updated successfully" });
+  } catch (err) {
+    console.error("Error updating batch:", err.message);
+    res.status(500).json({ message: "Failed to update batch" });
+  }
+});
+
 
 
 export default adminrouter;
