@@ -1,17 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import {Link, useNavigate } from 'react-router-dom';
 import logo from '../college_website/logo.png';
+import axios from 'axios';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [role, setRole] = useState(null);
+  const navigate = useNavigate(); // Add this
 
   useEffect(() => {
     const storedRole = localStorage.getItem('userRole');
     setRole(storedRole);
   }, []);
 
-  // Render links based on role
+  const handleLogout = async () => {
+    try {
+      await axios.get('/auth/logout'); // adjust API path if needed
+      localStorage.removeItem('userToken');
+      localStorage.removeItem('userRole');
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
+  // Updated renderLinks()
   const renderLinks = () => {
     if (role === 'admin') {
       return (
@@ -19,7 +32,12 @@ const Navbar = () => {
           <Link to="/Login" className="nav-link">Login</Link>
           <Link to="/" className="nav-link">Home</Link>
           <Link to="/Dashboard" className="nav-link">Dashboard</Link>
-          <Link to='/' className='nav-link'>Logout</Link>
+          <button
+            onClick={handleLogout}
+            className="nav-link text-red-600"
+          >
+            Logout
+          </button>
         </>
       );
     }

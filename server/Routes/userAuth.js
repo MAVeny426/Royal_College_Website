@@ -135,11 +135,47 @@ authrouter.post("/login", async (req, res) => {
   }
 });
 
-
-
 authrouter.get("/logout", (req, res) => {
   res.clearCookie("accessToken");
   res.status(200).json({ message: "Logout successful" });
 });
 
+authrouter.post('/studentsignup', async (req, res) => {
+  const { name, email, password, course } = req.body;
+
+  try {
+    // Check if user already exists
+    const existing = await connection.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ message: 'Email already registered' });
+    }
+
+    // ✅ Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // ✅ Insert into users
+    const userRes = await connection.query(
+      `INSERT INTO users (name, email, password, role, course)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING user_id`,
+      [name, email, hashedPassword, 'student', course]
+    );
+    const user_id = userRes.rows[0].user_id;
+
+    // ✅ Insert into student
+    await connection.query(
+      `INSERT INTO student (user_id, student_code, admission_date)
+       VALUES ($1, $2, CURRENT_DATE)`,
+      [user_id, `STU-${user_id}`]
+    );
+
+    res.status(201).json({ message: 'Student registered successfully' });
+  } catch (error) {
+    console.error('Student signup error:', error.message);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 export default authrouter;
