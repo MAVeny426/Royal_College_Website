@@ -141,14 +141,26 @@ authrouter.get("/logout", (req, res) => {
 });
 
 authrouter.post('/studentsignup', async (req, res) => {
-  const { name, email, password, course } = req.body;
+  const {
+    name,
+    email,
+    password,
+    course,
+    guardian_name,
+    address,
+    dob,
+    gender,
+    blood_group,
+    documents, // optional: expected as a JSON object from frontend (e.g. { "aadhar": "...", "marksheet": "..." })
+  } = req.body;
 
   try {
-    // Check if user already exists
+    // ✅ Check if user already exists
     const existing = await connection.query(
       'SELECT * FROM users WHERE email = $1',
       [email]
     );
+
     if (existing.rows.length > 0) {
       return res.status(409).json({ message: 'Email already registered' });
     }
@@ -156,26 +168,50 @@ authrouter.post('/studentsignup', async (req, res) => {
     // ✅ Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ✅ Insert into users
+    // ✅ Insert into users table
     const userRes = await connection.query(
       `INSERT INTO users (name, email, password, role, course)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING user_id`,
       [name, email, hashedPassword, 'student', course]
     );
-    const user_id = userRes.rows[0].user_id;
 
-    // ✅ Insert into student
+    const user_id = userRes.rows[0].user_id;
+    const student_code = `STU-${user_id}`;
+
+    // ✅ Insert into student table with full schema
     await connection.query(
-      `INSERT INTO student (user_id, student_code, admission_date)
-       VALUES ($1, $2, CURRENT_DATE)`,
-      [user_id, `STU-${user_id}`]
+      `INSERT INTO student (
+        user_id,
+        student_code,
+        guardian_name,
+        address,
+        dob,
+        gender,
+        blood_group,
+        admission_date,
+        documents
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, CURRENT_DATE, $8
+      )`,
+      [
+        user_id,
+        student_code,
+        guardian_name,
+        address,
+        dob,
+        gender,
+        blood_group,
+        documents || null // default to null if not provided
+      ]
     );
 
     res.status(201).json({ message: 'Student registered successfully' });
+
   } catch (error) {
     console.error('Student signup error:', error.message);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 export default authrouter;
