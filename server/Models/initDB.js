@@ -25,6 +25,8 @@ import createBatchTable from './batchModels.js';
 import createTeacherTable from './teacherModels.js';
 import createStudentTable from './studentModels.js';
 import createAdminUser from '../Middleware/createAdmin.js';
+import createAssignment from './assignmentModels.js'
+import createLeave from './leaveModel.js'
 
 const init = async () => {
   try {
@@ -34,6 +36,8 @@ const init = async () => {
     await createBatchTable();
     await createTeacherTable();
     await createStudentTable();
+    await createAssignment();
+    await createLeave();
     console.log(' All tables created successfully.');
 
     console.log('\n Creating admin user...');
