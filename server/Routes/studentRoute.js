@@ -61,4 +61,29 @@ studentrouter.get("/getAssignment", async (req, res) => {
   }
 });
 
+studentrouter.post('/apply', async (req, res) => {
+  try {
+    const { name, email, student_id, reason, description, leave_date } = req.body;
+
+    if (!name || !email || !student_id || !reason || !leave_date) {
+      return res.status(400).json({ error: 'Please fill all required fields' });
+    }
+
+    const query = `
+      INSERT INTO leave_applications (name, email, student_id, reason, description, leave_date)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *;
+    `;
+    const values = [name, email, student_id, reason, description, leave_date];
+
+    const result = await pool.query(query, values);
+    res.status(201).json({ message: 'Leave application submitted', data: result.rows[0] });
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 export default studentrouter;
