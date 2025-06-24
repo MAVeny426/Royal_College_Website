@@ -182,31 +182,30 @@ adminrouter.get("/getTeacherNames", verifyUserToken, async (req, res) => {
   }
 });
 
-adminrouter.get("/getTD", async (req, res) => {
-  const { course } = req.query; // read ?course=XYZ from URL
+adminrouter.get('/getTD', async (req, res) => {
+  const { course } = req.query;
+
+  if (!course) {
+    return res.status(400).json({ message: 'Course name is required' });
+  }
 
   try {
-    let query = `
-      SELECT 
-        "Teacher_name" AS name,
-        "Subjects_Taught" AS subject_taught,
-        "Experience_Years" AS experience
-      FROM "Teachers"
-    `;
+    const result = await connection.query(
+      `SELECT u.user_id, u.name, t.experience_years AS experience, t.subjects_taught AS subject_taught
+       FROM users u
+       JOIN "Teachers" t ON u.user_id = t.user_id
+       WHERE LOWER(u.course) = LOWER($1)`,
+      [course]
+    );
 
-    const values = [];
-
-    if (course) {
-      query += ` WHERE "course_name" = $1`;
-      values.push(course);
+    if (result.rows.length === 0) {
+      return res.status(200).json({ teachers: [] });
     }
 
-    const result = await connection.query(query, values);
-
     res.status(200).json({ teachers: result.rows });
-  } catch (error) {
-    console.error("Error fetching teacher names:", error.message);
-    res.status(500).json({ error: "Failed to fetch teacher names" });
+  } catch (err) {
+    console.error('Error fetching teacher details:', err.message);
+    res.status(500).json({ message: 'Server error while fetching teachers' });
   }
 });
 
