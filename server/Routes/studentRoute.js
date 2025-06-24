@@ -4,6 +4,8 @@ import multer from "multer";
 // import path from "path";
 import fs from "fs";
 
+// const router = express.Router();
+
 const studentrouter = express.Router();
 
 // Multer setup
@@ -11,13 +13,12 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = "./uploads";
     if (!fs.existsSync(uploadPath)) {
+      console.log("Creating upload folder...");
       fs.mkdirSync(uploadPath);
     }
     cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
   }
+  
 });
 
 const upload = multer({ storage });
