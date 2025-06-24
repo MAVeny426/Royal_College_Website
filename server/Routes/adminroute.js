@@ -142,26 +142,74 @@ adminrouter.get("/getProfileDetails", async (req, res) => {
 
 
 // Get teacher names list (admin only)
+// adminrouter.get("/getTeacherNames", verifyUserToken, async (req, res) => {
+//   if (req.loginRole !== "admin") {
+//     console.log("Invalid access");
+//     return res.status(403).json({ message: "Unauthorized access" });
+//   }
+
+//   try {
+//     const fetchquery = `
+//       SELECT user_id, name
+//       FROM "users"
+//       WHERE role = 'teacher'
+//     `;
+
+//     const result = await connection.query(fetchquery);
+//     res.status(200).json({ teachers: result.rows });
+//   } catch (error) {
+//     console.error("Error fetching teacher names:", error.message);
+//     res.status(500).json({ message: "Failed to fetch teacher names" });
+//   }
+// });
+
 adminrouter.get("/getTeacherNames", verifyUserToken, async (req, res) => {
-  if (req.loginRole !== "admin") {
-    console.log("Invalid access");
-    return res.status(403).json({ message: "Unauthorized access" });
-  }
-
   try {
-    const fetchquery = `
-      SELECT user_id, name
-      FROM "users"
-      WHERE role = 'teacher'
+    const query = `
+      SELECT 
+        User_Id AS user_id, 
+        Teacher_name AS name, 
+        Subjects_Taught AS subject_taught, 
+        Experience_Years AS experience
+      FROM "Teachers"
     `;
+    const result = await connection.query(query);
 
-    const result = await connection.query(fetchquery);
     res.status(200).json({ teachers: result.rows });
   } catch (error) {
     console.error("Error fetching teacher names:", error.message);
-    res.status(500).json({ message: "Failed to fetch teacher names" });
+    res.status(500).json({ error: "Failed to fetch teacher names" });
   }
 });
+
+adminrouter.get("/getTD", async (req, res) => {
+  const { course } = req.query; // read ?course=XYZ from URL
+
+  try {
+    let query = `
+      SELECT 
+        "Teacher_name" AS name,
+        "Subjects_Taught" AS subject_taught,
+        "Experience_Years" AS experience
+      FROM "Teachers"
+    `;
+
+    const values = [];
+
+    if (course) {
+      query += ` WHERE "course_name" = $1`;
+      values.push(course);
+    }
+
+    const result = await connection.query(query, values);
+
+    res.status(200).json({ teachers: result.rows });
+  } catch (error) {
+    console.error("Error fetching teacher names:", error.message);
+    res.status(500).json({ error: "Failed to fetch teacher names" });
+  }
+});
+
 
 // Delete a teacher by name (admin only)
 adminrouter.delete("/deleteTeacher", verifyUserToken, async (req, res) => {

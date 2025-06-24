@@ -22,6 +22,7 @@ import AllCourses from './Pages/AllCourses.jsx';
 import AddBatch from './Pages/AddBatch.jsx';
 import ViewCourse from './Pages/ViewCourse.jsx';
 import EditBatch from './Pages/EditBatch.jsx';
+import ClassTeacher from './Pages/ClassTeacher.jsx';
 
 // import NotFound from './pages/NotFound';
 
@@ -51,6 +52,7 @@ const App = () => {
         <Route path='/AddBatch' element={< AddBatch/>}/>
         <Route path="/ViewCourse" element={<ViewCourse />} />
         <Route path="/EditBatch" element={<EditBatch />} />
+        <Route path="/ClassTeacher" element={<ClassTeacher />} />
         {/* Not-Found Route */}
         {/* <Route path="*" element={<NotFound />} /> */}
       </>
