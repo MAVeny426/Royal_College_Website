@@ -32,45 +32,42 @@ const ViewTeachers = () => {
 
   // Search by course
   const handleSearch = async () => {
-    if (!searchTerm.trim()) {
+    const trimmedSearch = searchTerm.trim();
+  
+    if (!trimmedSearch) {
       setFilteredTeachers(teachers);
       return;
     }
-
+  
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:3000/api/admin/getTD?course=${encodeURIComponent(searchTerm)}`, {
+      const response = await fetch(`http://localhost:3000/api/admin/getTD?subject=${encodeURIComponent(searchTerm)}`, {
         method: 'GET',
         credentials: 'include',
       });
-
+      
+  
       const data = await response.json();
-
+  
       if (!response.ok) {
         throw new Error(data.message || 'Failed to fetch');
       }
-
+  
       if (!Array.isArray(data.teachers)) {
         throw new Error('Invalid response format');
       }
-
-      if (data.teachers.length === 0) {
-        setFilteredTeachers([]);
-        setError(null);
-      } else {
-        const sorted = data.teachers.sort((a, b) => b.experience - a.experience);
-        setFilteredTeachers(sorted);
-        setError(null);
-      }
-
-      setLoading(false);
+  
+      const sorted = data.teachers.sort((a, b) => b.experience - a.experience);
+      setFilteredTeachers(sorted);
+      setError(null);
     } catch (err) {
       console.error('Error searching teachers:', err);
       setError(err.message);
+    } finally {
       setLoading(false);
     }
   };
-
+  
   useEffect(() => {
     fetchAllTeachers();
   }, []);

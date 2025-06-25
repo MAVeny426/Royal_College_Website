@@ -77,14 +77,58 @@ studentrouter.post('/apply', async (req, res) => {
     `;
     const values = [name, email, student_id, reason, description, leave_date];
 
-    const result = await pool.query(query, values);
+    const result = await connection.query(query, values); // ✅ correct: using `connection`
     res.status(201).json({ message: 'Leave application submitted', data: result.rows[0] });
 
   } catch (err) {
-    console.error(err.message);
+    console.error('Error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+// Route: GET /student/profile
+studentrouter.get('/profile', async (req, res) => {
+  try {
+    const studentId = 7; // 🔁 Use 6, 7, or 8 — make sure it exists in both `users` and `student`
+
+    const query = `
+      SELECT 
+        u.user_id, u.name, u.email, u.course, u.year, u.batch, 
+        s.student_code, s.guardian_name, s.address, s.dob, 
+        s.gender, s.blood_group, s.admission_date, s.documents
+      FROM users u
+      JOIN student s ON u.user_id = s.user_id
+      WHERE u.user_id = $1
+    `;
+
+    const result = await connection.query(query, [studentId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    console.error('Error fetching profile:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// studentrouter.get('/all', async (req, res) => {
+//   try {
+//     const result = await connection.query(`
+//       SELECT u.user_id, u.name, u.email, u.role, s.student_code
+//       FROM users u
+//       LEFT JOIN student s ON u.user_id = s.user_id
+//       WHERE u.role = 'student';
+//     `);
+//     res.json(result.rows);
+//   } catch (err) {
+//     console.error(err.message);
+//     res.status(500).json({ error: 'Server error' });
+//   }
+// });
 
 
 export default studentrouter;

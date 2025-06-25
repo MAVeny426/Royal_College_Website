@@ -35,7 +35,7 @@ const Addassignment = () => {
     payload.append('submission_date', formData.submission_date);
     payload.append('file', file);
 
-    const response = await fetch("http://localhost:5000/api/assignment/addAssignment", {
+    const response = await fetch("http://localhost:3000/api/student/addAssignment", {
       method: "POST",
       body: payload,
     });

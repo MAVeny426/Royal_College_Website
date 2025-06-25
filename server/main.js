@@ -8,7 +8,7 @@ import cors from 'cors';
 import adminRoutes from './Routes/adminroute.js'
 import authrouter from './Routes/userAuth.js'
 import teachrouter from './Routes/teacherroute.js';
-import assignmentRoute from './Routes/studentRoute.js'
+import studentrouter from './Routes/studentRoute.js'
 
 const collegeapp = express();
 collegeapp.use(cors({
@@ -33,7 +33,7 @@ collegeapp.use('/api/auth', authrouter);
 collegeapp.use('/api/teach', teachrouter);
 
 collegeapp.use("/uploads", express.static("uploads")); 
-collegeapp.use("/api/assignment", assignmentRoute);
+collegeapp.use("/api/student", studentrouter);
 
 
 const connection = new Client({

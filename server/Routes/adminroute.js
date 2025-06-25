@@ -139,30 +139,6 @@ adminrouter.get("/getProfileDetails", async (req, res) => {
 });
 
 
-
-
-// Get teacher names list (admin only)
-// adminrouter.get("/getTeacherNames", verifyUserToken, async (req, res) => {
-//   if (req.loginRole !== "admin") {
-//     console.log("Invalid access");
-//     return res.status(403).json({ message: "Unauthorized access" });
-//   }
-
-//   try {
-//     const fetchquery = `
-//       SELECT user_id, name
-//       FROM "users"
-//       WHERE role = 'teacher'
-//     `;
-
-//     const result = await connection.query(fetchquery);
-//     res.status(200).json({ teachers: result.rows });
-//   } catch (error) {
-//     console.error("Error fetching teacher names:", error.message);
-//     res.status(500).json({ message: "Failed to fetch teacher names" });
-//   }
-// });
-
 adminrouter.get("/getTeacherNames", verifyUserToken, async (req, res) => {
   try {
     const query = `
@@ -183,32 +159,27 @@ adminrouter.get("/getTeacherNames", verifyUserToken, async (req, res) => {
 });
 
 adminrouter.get('/getTD', async (req, res) => {
-  const { course } = req.query;
-
-  if (!course) {
-    return res.status(400).json({ message: 'Course name is required' });
-  }
+  const { subject } = req.query;
+  if (!subject) return res.status(400).json({ message: 'Subject is required' });
 
   try {
     const result = await connection.query(
       `SELECT u.user_id, u.name, t.experience_years AS experience, t.subjects_taught AS subject_taught
        FROM users u
        JOIN "Teachers" t ON u.user_id = t.user_id
-       WHERE LOWER(u.course) = LOWER($1)`,
-      [course]
+       WHERE EXISTS (
+         SELECT 1 FROM json_array_elements_text(t.subjects_taught) AS subject
+         WHERE subject ILIKE $1
+       )`,
+      [`%${subject}%`]
     );
-
-    if (result.rows.length === 0) {
-      return res.status(200).json({ teachers: [] });
-    }
 
     res.status(200).json({ teachers: result.rows });
   } catch (err) {
-    console.error('Error fetching teacher details:', err.message);
-    res.status(500).json({ message: 'Server error while fetching teachers' });
+    console.error('getTD search error:', err.message);
+    res.status(500).json({ message: `Server error: ${err.message}` });
   }
 });
-
 
 // Delete a teacher by name (admin only)
 adminrouter.delete("/deleteTeacher", verifyUserToken, async (req, res) => {
@@ -353,23 +324,6 @@ adminrouter.patch("/updateTeacherSchedule", verifyUserToken, async (req, res) =>
   } catch (error) {
     console.error("Error updating teacher schedule:", error.message);
     res.status(500).json({ message: "Failed to update teacher schedule" });
-  }
-});
-
-//------------------------------------------------------------------------
-
-adminrouter.get("/getTeacherNames", verifyUserToken, async (req, res) => {
-  if (req.loginRole !== "admin") {
-    return res.status(403).json({ message: "Unauthorized access" });
-  }
-
-  try {
-    const query = `SELECT user_id, name FROM users WHERE role = 'teacher'`;
-    const result = await connection.query(query);
-    res.status(200).json({ teachers: result.rows });
-  } catch (error) {
-    console.error("Error fetching teacher names:", error.message);
-    res.status(500).json({ message: "Failed to fetch teacher names" });
   }
 });
 
